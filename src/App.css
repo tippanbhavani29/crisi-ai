@@ -1,0 +1,188 @@
+:root {
+  --color-bg-base: #0a0f1d;
+  --color-surface: rgba(255, 255, 255, 0.03);
+  --color-primary: #3b82f6;
+  --color-accent: #60a5fa;
+  --color-danger: #ef4444;
+  --color-safe: #10b981;
+  --color-warning: #f59e0b;
+  --radius-lg: 16px;
+  --glass-blur: blur(12px);
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg-base);
+  color: white;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+/* TOPBAR */
+.layout-topbar {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  background: rgba(10, 15, 29, 0.8);
+  backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.logo-link {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-link h1 {
+  font-size: 1.25rem;
+  background: linear-gradient(135deg, #fff 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.nav-controls {
+  display: flex;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 4px;
+  border-radius: 12px;
+}
+
+.nav-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.nav-btn:hover { color: white; }
+.nav-btn.active {
+  background: var(--color-primary);
+  color: white;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* CITIZEN PORTAL (SIMPLIFIED) */
+.citizen-portal-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: calc(100vh - 64px);
+  padding: 2rem;
+  background: radial-gradient(circle at center, #1e293b 0%, #0a0f1d 100%);
+}
+
+.citizen-main-card {
+  width: 100%;
+  max-width: 500px;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 2rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* ADMIN PANEL (CLEAN 2-COLUMN) */
+.admin-layout-wrapper {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  height: calc(100vh - 64px);
+  overflow: hidden;
+}
+
+.admin-sidebar-list {
+  background: #0f172a;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.list-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.admin-report-card {
+  padding: 1.25rem;
+  margin: 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.admin-report-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+}
+
+.admin-report-card.active {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: var(--color-primary);
+  box-shadow: 0 8px 16px rgba(59, 130, 246, 0.1);
+}
+
+.admin-action-center {
+  background: #0b1120;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.action-header-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.01);
+}
+
+.stat-card-mini {
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.split-detail-view {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.detail-map-box {
+  background: #000;
+  position: relative;
+}
+
+.detail-command-box {
+  background: #111827;
+  border-left: 1px solid rgba(255, 255, 255, 0.05);
+  overflow-y: auto;
+}
+
+/* ANIMATIONS */
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

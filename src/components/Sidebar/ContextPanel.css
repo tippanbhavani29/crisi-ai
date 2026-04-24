@@ -1,0 +1,166 @@
+.context-panel-wrapper {
+  color: white;
+}
+
+/* BIG BUTTON STYLES */
+.btn-submit.main-action {
+  width: 100%;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+  transition: all 0.2s;
+  margin-top: 1rem;
+}
+
+.btn-submit.main-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px rgba(59, 130, 246, 0.4);
+}
+
+.report-input {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.25rem;
+  color: white;
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+  resize: none;
+  box-sizing: border-box;
+}
+
+.report-actions-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.action-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: white;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--color-primary);
+}
+
+/* TRACKING VIEW */
+.status-tracking h3 {
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.tracking-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1rem 0;
+}
+
+.time-step {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  font-size: 1.1rem;
+  opacity: 0.2;
+}
+
+.time-step.active {
+  opacity: 1;
+}
+
+.time-step .dot {
+  width: 14px;
+  height: 14px;
+  background: #3b82f6;
+  border-radius: 50%;
+  box-shadow: 0 0 20px #3b82f6;
+}
+
+.status-badge.rejected { background: #ef4444; color: white; box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
+
+.rejection-box {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 12px;
+  margin-bottom: 2rem;
+}
+
+.rejection-box strong { color: #ef4444; font-size: 0.9rem; }
+.rejection-box p { font-size: 0.85rem; margin: 2px 0 0 0; opacity: 0.8; }
+
+.time-step.failed { opacity: 1; color: #ef4444; }
+.time-step.failed .dot { background: #ef4444; box-shadow: 0 0 10px #ef4444; }
+
+/* ADMIN ACTION CENTER DETAIL */
+.admin-console-header {
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  margin-bottom: 1.5rem;
+}
+
+.admin-ai-report {
+  margin: 0 1.5rem 1.5rem 1.5rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.ai-score-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.ai-metric .label { font-size: 0.75rem; opacity: 0.5; text-transform: uppercase; }
+.ai-metric .value.highlight { font-size: 2rem; font-weight: 800; color: #3b82f6; }
+
+.admin-workflow-actions {
+  padding: 0 1.5rem;
+}
+
+.action-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.btn-workflow {
+  padding: 1rem;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.btn-workflow.approve { background: #3b82f6; color: white; }
+.btn-workflow.reject { background: #ef4444; color: white; }
+.btn-workflow.resolve { grid-column: span 2; background: #10b981; color: white; }
