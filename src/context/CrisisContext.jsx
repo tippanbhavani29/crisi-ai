@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { db } from '../config/firebase';
-import { collection, onSnapshot, query, orderBy, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, addDoc, updateDoc, doc, serverTimestamp, deleteDoc, getDocs } from 'firebase/firestore';
 import { AIValidationService } from '../services/CrisisService';
 
 const CrisisContext = createContext();
@@ -18,12 +18,6 @@ export function CrisisProvider({ children }) {
   const [tankers, setTankers] = useState([]);
 
   useEffect(() => {
-    // Ensure anonymous auth for Firestore writes
-    import('firebase/auth').then(({ signInAnonymously, getAuth }) => {
-      const auth = getAuth();
-      signInAnonymously(auth).catch(err => console.error("Auth failed:", err));
-    });
-
     const timer = setTimeout(() => setLoading(false), 3000);
 
     const qReports = query(collection(db, "reports"), orderBy("createdAt", "desc"));
@@ -151,10 +145,23 @@ export function CrisisProvider({ children }) {
     addLog('resolve', `✅ Crisis Resolved: ${id}`);
   };
 
+  const resetDatabase = async () => {
+    const collections = ['reports', 'logs', 'tankers'];
+    for (const col of collections) {
+      const q = query(collection(db, col));
+      const snapshot = await getDocs(q);
+      for (const d of snapshot.docs) {
+        await deleteDoc(doc(db, col, d.id));
+      }
+    }
+    addLog('system', "🧹 Database cleared successfully.");
+    window.location.reload();
+  };
+
   return (
     <CrisisContext.Provider value={{ 
       loading, areas, logs, tankers, 
-      reportIssue, dispatchTanker, approveReport, resolveIssue, rejectReport, provisionTankers 
+      reportIssue, dispatchTanker, approveReport, resolveIssue, rejectReport, provisionTankers, resetDatabase 
     }}>
       {children}
     </CrisisContext.Provider>

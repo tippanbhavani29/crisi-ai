@@ -10,14 +10,14 @@ import './ContextPanel.css';
 export default function ContextPanel({ regionId, onSetRegionId, forceMode, onReportCreated }) {
   const { 
     areas, reportIssue, dispatchTanker, 
-    approveReport, resolveIssue, rejectReport, tankers, provisionTankers 
+    approveReport, resolveIssue, rejectReport, tankers, provisionTankers, resetDatabase 
   } = useCrisisContext();
   
   const [reportText, setReportText] = useState('');
   const [reportState, setReportState] = useState('idle');
   const [locationLoading, setLocationLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
-  const [processingId, setProcessingId] = useState(null);
+  const [processingActionId, setProcessingActionId] = useState(null);
   const [rejectionMode, setRejectionMode] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [selectedPriority, setSelectedPriority] = useState('HIGH');
@@ -46,12 +46,12 @@ export default function ContextPanel({ regionId, onSetRegionId, forceMode, onRep
     setSelectedImage(null);
   };
 
-  const handleAdminAction = async (actionFn, ...args) => {
-    setProcessingId(region.id);
+  const handleAdminAction = async (actionId, actionFn, ...args) => {
+    setProcessingActionId(actionId);
     
     // 10 second safety timeout
     const timeout = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error("Request timed out. Please check your connection.")), 10000)
+      setTimeout(() => reject(new Error("Request timed out.")), 10000)
     );
 
     try {
@@ -60,7 +60,7 @@ export default function ContextPanel({ regionId, onSetRegionId, forceMode, onRep
       console.error("Action failed:", error);
       alert(`Operation failed: ${error.message || 'Unknown error'}.`);
     } finally {
-      setProcessingId(null);
+      setProcessingActionId(null);
       setRejectionMode(false);
       setRejectionReason('');
     }
@@ -226,6 +226,12 @@ export default function ContextPanel({ regionId, onSetRegionId, forceMode, onRep
            </div>
            <h3>Command Center</h3>
            <p>Select a report from the active queue to initiate response protocols.</p>
+           <button 
+             className="btn-reset-system" 
+             onClick={() => { if(window.confirm("Clear all data?")) handleAdminAction('reset', resetDatabase) }}
+           >
+             Reset System Data
+           </button>
         </div>
       ) : (
         <div className="admin-console animate-fade-in">
@@ -292,17 +298,17 @@ export default function ContextPanel({ regionId, onSetRegionId, forceMode, onRep
                   <div className="action-grid">
                      <button 
                        className="btn-op approve" 
-                       onClick={() => handleAdminAction(approveReport, region.id, selectedPriority)}
-                       disabled={['allocation_pending', 'tanker_dispatched', 'resolved', 'rejected'].includes(region.tracking_step) || processingId === region.id}
+                       onClick={() => handleAdminAction('approve', approveReport, region.id, selectedPriority)}
+                       disabled={['allocation_pending', 'tanker_dispatched', 'resolved', 'rejected'].includes(region.tracking_step) || !!processingActionId}
                      >
-                       {processingId === region.id ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={18}/>}
+                       {processingActionId === 'approve' ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={18}/>}
                        <span>Verify & Authorize</span>
                      </button>
                      
                      <button 
                        className="btn-op reject" 
                        onClick={() => setRejectionMode(true)}
-                       disabled={['resolved', 'rejected'].includes(region.tracking_step) || processingId === region.id}
+                       disabled={['resolved', 'rejected'].includes(region.tracking_step) || !!processingActionId}
                      >
                        <X size={18}/>
                        <span>Reject Report</span>
@@ -310,10 +316,10 @@ export default function ContextPanel({ regionId, onSetRegionId, forceMode, onRep
 
                      <button 
                        className="btn-op resolve" 
-                       onClick={() => handleAdminAction(resolveIssue, region.id)}
-                       disabled={region.tracking_step !== 'tanker_dispatched' || processingId === region.id}
+                       onClick={() => handleAdminAction('resolve', resolveIssue, region.id)}
+                       disabled={region.tracking_step !== 'tanker_dispatched' || !!processingActionId}
                      >
-                       {processingId === region.id ? <Loader2 size={18} className="animate-spin" /> : <ShieldCheck size={18}/>}
+                       {processingActionId === 'resolve' ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={18}/>}
                        <span>Complete Resolution</span>
                      </button>
                   </div>
@@ -331,7 +337,7 @@ export default function ContextPanel({ regionId, onSetRegionId, forceMode, onRep
                      <button 
                        className="btn-confirm-reject" 
                        disabled={!rejectionReason.trim()}
-                       onClick={() => handleAdminAction(rejectReport, region.id, rejectionReason)}
+                       onClick={() => handleAdminAction('reject', rejectReport, region.id, rejectionReason)}
                      >
                        Confirm Rejection
                      </button>
@@ -346,7 +352,7 @@ export default function ContextPanel({ regionId, onSetRegionId, forceMode, onRep
               {tankers.length === 0 ? (
                 <div className="empty-fleet-setup animate-fade-in">
                    <p>No active tankers in database.</p>
-                   <button className="btn-provision" onClick={() => handleAdminAction(provisionTankers)}>
+                   <button className="btn-provision" onClick={() => handleAdminAction('provision', provisionTankers)}>
                       Provision Demo Fleet
                    </button>
                 </div>
@@ -356,15 +362,15 @@ export default function ContextPanel({ regionId, onSetRegionId, forceMode, onRep
                     <button 
                       key={t.id} 
                       className={`tanker-card-btn ${t.status !== 'available' ? 'busy' : ''} ${region.allocation_details?.id === t.id ? 'allocated' : ''}`}
-                      disabled={t.status !== 'available' || region.tracking_step === 'tanker_dispatched' || processingId === region.id}
-                      onClick={() => handleAdminAction(dispatchTanker, region.id, t.id)}
+                      disabled={t.status !== 'available' || region.tracking_step === 'tanker_dispatched' || !!processingActionId}
+                      onClick={() => handleAdminAction(`dispatch-${t.id}`, dispatchTanker, region.id, t.id)}
                     >
                       <Truck size={18} />
                       <div className="tanker-info">
                          <span className="name">{t.name}</span>
                          <span className="status">{t.status}</span>
                       </div>
-                      {processingId === region.id && <Loader2 size={14} className="animate-spin ml-auto" />}
+                      {processingActionId === `dispatch-${t.id}` && <Loader2 size={14} className="animate-spin ml-auto" />}
                     </button>
                   ))}
                 </div>
@@ -380,27 +386,6 @@ export default function ContextPanel({ regionId, onSetRegionId, forceMode, onRep
     <div className="context-panel-wrapper">
       {forceMode === 'citizen' ? renderCitizenView() : renderAdminView()}
     </div>
-  );
-}
-
-// Additional Lucide icons needed
-function ShieldCheck({ size, className }) {
-  return (
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      width={size} 
-      height={size} 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
-      className={className}
-    >
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-      <path d="m9 12 2 2 4-4" />
-    </svg>
   );
 }
 

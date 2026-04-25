@@ -23,6 +23,10 @@ const app = initializeApp(firebaseConfig);
 // Initialize Services
 export const db = getFirestore(app);
 export const auth = getAuth(app);
+
+// Ensure a valid session for Firestore writes
+import { signInAnonymously } from "firebase/auth";
+signInAnonymously(auth).catch(err => console.error("Auth failed:", err));
 export const storage = getStorage(app);
 
 let analytics = null;
