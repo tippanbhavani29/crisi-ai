@@ -549,3 +549,75 @@
 
 .ml-auto { margin-left: auto; }
 
+/* PRIORITY SELECTOR */
+.admin-action-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.priority-selector-v2 {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 1rem;
+  border-radius: 12px;
+}
+
+.tiny-label {
+  display: block;
+  font-size: 0.65rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.prio-options {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.prio-opt {
+  padding: 6px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.prio-opt.active.low { background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: #10b981; }
+.prio-opt.active.medium { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: #3b82f6; }
+.prio-opt.active.high { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: #f59e0b; }
+.prio-opt.active.critical { background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: #ef4444; }
+
+/* PROVISIONING */
+.empty-fleet-setup {
+  padding: 2rem;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 16px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.empty-fleet-setup p {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.btn-provision {
+  padding: 0.75rem 1.5rem;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+

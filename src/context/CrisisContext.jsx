@@ -18,6 +18,12 @@ export function CrisisProvider({ children }) {
   const [tankers, setTankers] = useState([]);
 
   useEffect(() => {
+    // Ensure anonymous auth for Firestore writes
+    import('firebase/auth').then(({ signInAnonymously, getAuth }) => {
+      const auth = getAuth();
+      signInAnonymously(auth).catch(err => console.error("Auth failed:", err));
+    });
+
     const timer = setTimeout(() => setLoading(false), 3000);
 
     const qReports = query(collection(db, "reports"), orderBy("createdAt", "desc"));
@@ -67,7 +73,18 @@ export function CrisisProvider({ children }) {
       });
 
       // AI Analysis
-      const analysis = await AIValidationService.analyzeReport(description, base64Image);
+      const rawAnalysis = await AIValidationService.analyzeReport(description, base64Image);
+      
+      // Normalize analysis with defaults to prevent empty fields in UI
+      const analysis = {
+        is_real: rawAnalysis?.is_real ?? true,
+        confidence: rawAnalysis?.confidence ?? 50,
+        priority: rawAnalysis?.priority ?? 'MEDIUM',
+        reason: rawAnalysis?.reason || "Analysis completed by Crisis AI system.",
+        water_level: rawAnalysis?.water_level ?? 50,
+        needs_tanker: rawAnalysis?.needs_tanker ?? false
+      };
+
       const isCriticalHighConf = analysis.priority === 'CRITICAL' && analysis.confidence > 90;
 
       await updateDoc(doc(db, "reports", docRef.id), {
@@ -86,9 +103,27 @@ export function CrisisProvider({ children }) {
     }
   };
 
-  const approveReport = async (id) => {
-    await updateDoc(doc(db, "reports", id), { tracking_step: 'allocation_pending', trust_level: 'verified' });
-    addLog('admin', `✅ Report Approved: ${id}`);
+  const approveReport = async (id, priority = 'HIGH') => {
+    const status = priority === 'CRITICAL' ? 'critical' : (priority === 'HIGH' ? 'moderate' : 'safe');
+    await updateDoc(doc(db, "reports", id), { 
+      tracking_step: 'allocation_pending', 
+      trust_level: 'verified',
+      priority,
+      status
+    });
+    addLog('admin', `✅ Report Approved [${priority}]: ${id}`);
+  };
+
+  const provisionTankers = async () => {
+    const demoTankers = [
+      { name: "Alpha-1 (Heavy)", status: "available", capacity: "10k L" },
+      { name: "Beta-4 (Rapid)", status: "available", capacity: "5k L" },
+      { name: "Gamma-9 (Hospital)", status: "available", capacity: "12k L" }
+    ];
+    for (const t of demoTankers) {
+      await addDoc(collection(db, "tankers"), t);
+    }
+    addLog('system', "🚚 Demo fleet provisioned successfully.");
   };
 
   const rejectReport = async (id, reason) => {
@@ -119,7 +154,7 @@ export function CrisisProvider({ children }) {
   return (
     <CrisisContext.Provider value={{ 
       loading, areas, logs, tankers, 
-      reportIssue, dispatchTanker, approveReport, resolveIssue, rejectReport 
+      reportIssue, dispatchTanker, approveReport, resolveIssue, rejectReport, provisionTankers 
     }}>
       {children}
     </CrisisContext.Provider>

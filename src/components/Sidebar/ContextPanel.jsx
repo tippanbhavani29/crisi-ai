@@ -10,7 +10,7 @@ import './ContextPanel.css';
 export default function ContextPanel({ regionId, onSetRegionId, forceMode, onReportCreated }) {
   const { 
     areas, reportIssue, dispatchTanker, 
-    approveReport, resolveIssue, rejectReport, tankers 
+    approveReport, resolveIssue, rejectReport, tankers, provisionTankers 
   } = useCrisisContext();
   
   const [reportText, setReportText] = useState('');
@@ -20,6 +20,7 @@ export default function ContextPanel({ regionId, onSetRegionId, forceMode, onRep
   const [processingId, setProcessingId] = useState(null);
   const [rejectionMode, setRejectionMode] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [selectedPriority, setSelectedPriority] = useState('HIGH');
   const fileInputRef = useRef(null);
   
   const region = areas.find(a => a.id === regionId);
@@ -47,8 +48,17 @@ export default function ContextPanel({ regionId, onSetRegionId, forceMode, onRep
 
   const handleAdminAction = async (actionFn, ...args) => {
     setProcessingId(region.id);
+    
+    // 10 second safety timeout
+    const timeout = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error("Request timed out. Please check your connection.")), 10000)
+    );
+
     try {
-      await actionFn(...args);
+      await Promise.race([actionFn(...args), timeout]);
+    } catch (error) {
+      console.error("Action failed:", error);
+      alert(`Operation failed: ${error.message || 'Unknown error'}.`);
     } finally {
       setProcessingId(null);
       setRejectionMode(false);
@@ -261,33 +271,52 @@ export default function ContextPanel({ regionId, onSetRegionId, forceMode, onRep
              <span className="sub-header-label">Operational Control</span>
              
              {!rejectionMode ? (
-               <div className="action-grid">
-                  <button 
-                    className="btn-op approve" 
-                    onClick={() => handleAdminAction(approveReport, region.id)}
-                    disabled={region.tracking_step !== 'authority_review' || processingId === region.id}
-                  >
-                    {processingId === region.id ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={18}/>}
-                    <span>Verify & Authorize</span>
-                  </button>
-                  
-                  <button 
-                    className="btn-op reject" 
-                    onClick={() => setRejectionMode(true)}
-                    disabled={region.status === 'safe' || processingId === region.id}
-                  >
-                    <X size={18}/>
-                    <span>Reject Report</span>
-                  </button>
+               <div className="admin-action-stack">
+                  {!['allocation_pending', 'tanker_dispatched', 'resolved', 'rejected'].includes(region.tracking_step) && (
+                    <div className="priority-selector-v2 animate-fade-in">
+                       <span className="tiny-label">Select Priority Override</span>
+                       <div className="prio-options">
+                          {['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].map(p => (
+                            <button 
+                              key={p} 
+                              className={`prio-opt ${selectedPriority === p ? 'active' : ''} ${p.toLowerCase()}`}
+                              onClick={() => setSelectedPriority(p)}
+                            >
+                              {p}
+                            </button>
+                          ))}
+                       </div>
+                    </div>
+                  )}
 
-                  <button 
-                    className="btn-op resolve" 
-                    onClick={() => handleAdminAction(resolveIssue, region.id)}
-                    disabled={region.tracking_step !== 'tanker_dispatched' || processingId === region.id}
-                  >
-                    {processingId === region.id ? <Loader2 size={18} className="animate-spin" /> : <ShieldCheck size={18}/>}
-                    <span>Complete Resolution</span>
-                  </button>
+                  <div className="action-grid">
+                     <button 
+                       className="btn-op approve" 
+                       onClick={() => handleAdminAction(approveReport, region.id, selectedPriority)}
+                       disabled={['allocation_pending', 'tanker_dispatched', 'resolved', 'rejected'].includes(region.tracking_step) || processingId === region.id}
+                     >
+                       {processingId === region.id ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={18}/>}
+                       <span>Verify & Authorize</span>
+                     </button>
+                     
+                     <button 
+                       className="btn-op reject" 
+                       onClick={() => setRejectionMode(true)}
+                       disabled={['resolved', 'rejected'].includes(region.tracking_step) || processingId === region.id}
+                     >
+                       <X size={18}/>
+                       <span>Reject Report</span>
+                     </button>
+
+                     <button 
+                       className="btn-op resolve" 
+                       onClick={() => handleAdminAction(resolveIssue, region.id)}
+                       disabled={region.tracking_step !== 'tanker_dispatched' || processingId === region.id}
+                     >
+                       {processingId === region.id ? <Loader2 size={18} className="animate-spin" /> : <ShieldCheck size={18}/>}
+                       <span>Complete Resolution</span>
+                     </button>
+                  </div>
                </div>
              ) : (
                <div className="rejection-form-v2 animate-fade-in">
@@ -314,23 +343,32 @@ export default function ContextPanel({ regionId, onSetRegionId, forceMode, onRep
           {(region.tracking_step === 'allocation_pending' || region.tracking_step === 'tanker_dispatched') && (
             <div className="fleet-dispatch-v2">
               <span className="sub-header-label">Resource Allocation</span>
-              <div className="tanker-grid">
-                {tankers.map(t => (
-                  <button 
-                    key={t.id} 
-                    className={`tanker-card-btn ${t.status !== 'available' ? 'busy' : ''} ${region.allocation_details?.id === t.id ? 'allocated' : ''}`}
-                    disabled={t.status !== 'available' || region.tracking_step === 'tanker_dispatched' || processingId === region.id}
-                    onClick={() => handleAdminAction(dispatchTanker, region.id, t.id)}
-                  >
-                    <Truck size={18} />
-                    <div className="tanker-info">
-                       <span className="name">{t.name}</span>
-                       <span className="status">{t.status}</span>
-                    </div>
-                    {processingId === region.id && <Loader2 size={14} className="animate-spin ml-auto" />}
-                  </button>
-                ))}
-              </div>
+              {tankers.length === 0 ? (
+                <div className="empty-fleet-setup animate-fade-in">
+                   <p>No active tankers in database.</p>
+                   <button className="btn-provision" onClick={() => handleAdminAction(provisionTankers)}>
+                      Provision Demo Fleet
+                   </button>
+                </div>
+              ) : (
+                <div className="tanker-grid">
+                  {tankers.map(t => (
+                    <button 
+                      key={t.id} 
+                      className={`tanker-card-btn ${t.status !== 'available' ? 'busy' : ''} ${region.allocation_details?.id === t.id ? 'allocated' : ''}`}
+                      disabled={t.status !== 'available' || region.tracking_step === 'tanker_dispatched' || processingId === region.id}
+                      onClick={() => handleAdminAction(dispatchTanker, region.id, t.id)}
+                    >
+                      <Truck size={18} />
+                      <div className="tanker-info">
+                         <span className="name">{t.name}</span>
+                         <span className="status">{t.status}</span>
+                      </div>
+                      {processingId === region.id && <Loader2 size={14} className="animate-spin ml-auto" />}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
