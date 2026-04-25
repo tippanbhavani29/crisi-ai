@@ -85,11 +85,17 @@ function App() {
                       className={`admin-report-card ${selectedRegionId === report.id ? 'active' : ''}`}
                       onClick={() => setSelectedRegionId(report.id)}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                        <strong style={{ fontSize: '0.95rem' }}>{report.name}</strong>
-                        <span style={{ fontSize: '0.7rem', color: report.status === 'critical' ? '#ef4444' : '#f59e0b' }}>● {report.priority}</span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <strong style={{ margin: 0 }}>{report.name}</strong>
+                        <span className={`prio-tag ${report.priority?.toLowerCase()}`}>
+                          {report.priority}
+                        </span>
                       </div>
-                      <p style={{ fontSize: '0.8rem', opacity: 0.6, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{report.description}</p>
+                      <p className="description-preview">{report.description}</p>
+                      <div className="card-footer">
+                         <span className={`status-pill ${report.status}`}>{report.status}</span>
+                         <span className="time-ago">ID: {report.id.slice(0, 6)}</span>
+                      </div>
                     </div>
                   ))}
                 </div>
