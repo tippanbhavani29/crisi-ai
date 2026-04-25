@@ -58,7 +58,8 @@ export default function ContextPanel({ regionId, onSetRegionId, forceMode, onRep
       await Promise.race([actionFn(...args), timeout]);
     } catch (error) {
       console.error("Action failed:", error);
-      alert(`Operation failed: ${error.message || 'Unknown error'}.`);
+      const errorMsg = error.code ? `[${error.code}] ${error.message}` : error.message;
+      alert(`Operation failed: ${errorMsg || 'Unknown error'}. Please ensure you are connected to the internet.`);
     } finally {
       setProcessingActionId(null);
       setRejectionMode(false);

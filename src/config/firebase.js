@@ -26,7 +26,10 @@ export const auth = getAuth(app);
 
 // Ensure a valid session for Firestore writes
 import { signInAnonymously } from "firebase/auth";
-signInAnonymously(auth).catch(err => console.error("Auth failed:", err));
+signInAnonymously(auth).catch(err => {
+  console.error("Firebase Anonymous Auth Failed:", err.code, err.message);
+  // Optional: Alert the user if auth is critical
+});
 export const storage = getStorage(app);
 
 let analytics = null;
